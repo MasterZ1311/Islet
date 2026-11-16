@@ -6,4 +6,6 @@ contextBridge.exposeInMainWorld("settings", {
   pickPet: () => ipcRenderer.invoke("settings:pickPet"),
   clearPet: () => ipcRenderer.invoke("settings:clearPet"),
   useDoudou: () => ipcRenderer.invoke("settings:useBuiltinPet", "doudou"),
+  themeCode: () => ipcRenderer.invoke("settings:themeCode"),
+  themeApply: code => ipcRenderer.invoke("settings:themeApply", code),
 });

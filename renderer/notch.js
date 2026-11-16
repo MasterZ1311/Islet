@@ -1044,6 +1044,13 @@ window.bridge.onScreenshot(d => toast({ id: d.id, app: "Screenshot", badge: "▣
 // ---- look ----
 window.bridge.onTheme(t => {
   theme = t;
+  // Theme Studio (#222): colour tokens, shape and motion
+  if (t.studio) {
+    const root = document.documentElement;
+    for (const [k, v] of Object.entries(t.studio.tokens)) root.style.setProperty(`--${k}`, v);
+    notch.dataset.shape = t.studio.pillShape;
+    root.dataset.motion = t.studio.motion;
+  }
   if (t.accent !== "album") document.documentElement.style.setProperty("--accent", t.accent);
   else if (track?.art) accentFrom(track.art);
   else noArtAccent();

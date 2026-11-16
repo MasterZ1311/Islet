@@ -59,8 +59,9 @@ const githubNotify = require("./github-notify");
 const ghActivity = require("./gh-activity");
 const mixer = require("./mixer");
 const recording = require("./recording");
+const studio = require("./theme-studio");
 const configPath = () => path.join(app.getPath("userData"), "config.json");
-const DEFAULTS = { spotifyClientId: "", calendarIcsUrl: "", displayId: null, notifications: true, hideInFullscreen: true, lyrics: true, permissionWaitSeconds: 8, dnd: false, dndFrom: "", dndTo: "", dndSkipUntil: 0, clipboardHistory: true, volumeHud: true, focusDnd: true, universalSearch: true, weatherCity: "", weatherUnit: "C", downloadsFolder: "", size: "normal", accent: "album", idleHide: false, hideWindowsBanners: true, powerAnim: true, powerAnimStyle: "cinematic", pet: true, userName: "", customPet: "", screenshotShelf: true, agentUpdates: true };
+const DEFAULTS = { spotifyClientId: "", calendarIcsUrl: "", displayId: null, notifications: true, hideInFullscreen: true, lyrics: true, permissionWaitSeconds: 8, dnd: false, dndFrom: "", dndTo: "", dndSkipUntil: 0, clipboardHistory: true, volumeHud: true, focusDnd: true, universalSearch: true, weatherCity: "", weatherUnit: "C", downloadsFolder: "", size: "normal", accent: "album", idleHide: false, hideWindowsBanners: true, powerAnim: true, powerAnimStyle: "cinematic", themeBase: "midnight", pillShape: "notch", motion: "bouncy", pet: true, userName: "", customPet: "", screenshotShelf: true, agentUpdates: true };
 let config = { ...DEFAULTS };
 // only a missing file is created; one that can't be read or parsed (a hand edit in
 // progress, a half-written save) is left alone and the current settings stay in use.
@@ -842,6 +843,16 @@ ipcMain.handle("settings:useBuiltinPet", (_, id) => {
 });
 ipcMain.handle("settings:clearPet", () => { config = { ...config, customPet: "" }; saveConfig(); sendTheme(); return settingsView(); });
 ipcMain.handle("settings:load", () => settingsView());
+// Theme Studio presets (#222): the current look as a code, or a pasted code applied
+ipcMain.handle("settings:themeCode", () => studio.encode(config));
+ipcMain.handle("settings:themeApply", (_, code) => {
+  const t = studio.decode(code);
+  if (!t) throw new Error("not a theme code");
+  config = { ...config, ...t };
+  saveConfig(); // the settings-file watcher sends the new theme
+  sendTheme();
+  return settingsView();
+});
 ipcMain.handle("settings:save", (_, v) => {
   // only known keys, each checked; the form can't write anything else
   const str = (x, max = 2000) => (typeof x === "string" ? x.trim().slice(0, max) : "");
@@ -852,6 +863,7 @@ ipcMain.handle("settings:save", (_, v) => {
     accent: /^#[0-9a-f]{6}$/i.test(v.accent) ? v.accent : "album",
     idleHide: !!v.idleHide, hideInFullscreen: !!v.hideInFullscreen,
     powerAnim: !!v.powerAnim, powerAnimStyle: v.powerAnimStyle === "subtle" ? "subtle" : "cinematic", pet: !!v.pet, userName: str(v.userName, 40),
+    ...studio.clean(v),
     notifications: !!v.notifications, hideWindowsBanners: !!v.hideWindowsBanners, dnd: !!v.dnd, dndFrom: time(v.dndFrom), dndTo: time(v.dndTo),
     permissionWaitSeconds: Math.min(24, Math.max(0, Math.round(Number(v.permissionWaitSeconds) || 0))),
     lyrics: !!v.lyrics, spotifyClientId: str(v.spotifyClientId, 100),
@@ -913,7 +925,7 @@ function wallpaperThumb() {
 }
 function sendTheme() {
   if (win && !win.isDestroyed()) win.webContents.setZoomFactor(scale());
-  send("theme", { wallpaper: config.accent === "album" ? wallpaperThumb() : "", accent: /^#[0-9a-f]{6}$/i.test(config.accent) ? config.accent : "album", idleHide: !!config.idleHide, pet: config.pet !== false, powerAnim: config.powerAnim !== false, powerAnimStyle: config.powerAnimStyle === "subtle" ? "subtle" : "cinematic", name: displayName(), petPack: loadPet(config.customPet) });
+  send("theme", { wallpaper: config.accent === "album" ? wallpaperThumb() : "", accent: /^#[0-9a-f]{6}$/i.test(config.accent) ? config.accent : "album", idleHide: !!config.idleHide, pet: config.pet !== false, powerAnim: config.powerAnim !== false, powerAnimStyle: config.powerAnimStyle === "subtle" ? "subtle" : "cinematic", name: displayName(), petPack: loadPet(config.customPet), studio: studio.forNotch(config) });
 }
 // the name the pet and the dashboard greet you by: the one from settings, else the Windows account name
 function displayName() {

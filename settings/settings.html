@@ -24,6 +24,20 @@
         <input type="color" name="accentColor" aria-label="Fixed accent colour">
       </span>
     </div>
+    <h3 class="sub">Theme Studio</h3>
+    <label class="row"><span>Theme</span>
+      <select name="themeBase"><option value="midnight">Midnight</option><option value="graphite">Graphite</option><option value="ocean">Ocean</option><option value="forest">Forest</option><option value="mocha">Mocha</option><option value="plum">Plum</option></select>
+    </label>
+    <label class="row"><span>Shape<br><small>Notch hangs from the top edge, Island is a rounded capsule, Square has small corners</small></span>
+      <select name="pillShape"><option value="notch">Notch</option><option value="island">Island</option><option value="square">Square</option></select>
+    </label>
+    <label class="row"><span>Motion<br><small>How the notch opens, closes and switches tools</small></span>
+      <select name="motion"><option value="bouncy">Bouncy</option><option value="smooth">Smooth</option><option value="snappy">Snappy</option><option value="off">Off</option></select>
+    </label>
+    <div class="row"><span>Share your theme<br><small>Copies a code with the theme, shape, motion and accent. Paste someone's code to use theirs.</small></span>
+      <span class="btns"><button type="button" id="themeCopy">Copy theme code</button></span>
+    </div>
+    <div class="row col"><span class="inline themein"><input type="text" id="themeCode" maxlength="400" placeholder="islet-theme:…" aria-label="Theme code to apply" spellcheck="false"><button type="button" class="primary" id="themeApply">Apply</button></span></div>
     <label class="row"><span>Shrink to a thin line when nothing is happening</span><input type="checkbox" name="idleHide"></label>
     <label class="row"><span>Show a pet in the notch</span><input type="checkbox" name="pet"></label>
     <div class="row"><span>Pet: <b id="petName">the cat</b><br><small>Use any pet from codex-pets.net: download it, then choose the .zip or its pet.json.</small></span><span class="btns"><button type="button" id="petDoudou">Use Doudou</button><button type="button" class="primary" id="petPick">Choose a pet…</button><button type="button" id="petClear" hidden>Use the cat</button></span></div>

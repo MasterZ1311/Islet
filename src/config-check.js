@@ -1,5 +1,6 @@
 // config.json can be edited by hand. Known settings with the wrong type or an impossible
 // value fall back to their default, so nothing later trips over them; unknown keys stay.
+const studio = require("./theme-studio");
 const bool = v => typeof v === "boolean";
 const text = v => typeof v === "string";
 const clock = v => text(v) && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
@@ -16,6 +17,7 @@ const CHECKS = {
   size: v => ["compact", "normal", "large"].includes(v),
   accent: v => v === "album" || (text(v) && /^#[0-9a-f]{6}$/i.test(v)),
   powerAnimStyle: v => v === "cinematic" || v === "subtle",
+  themeBase: v => Object.hasOwn(studio.THEMES, v), pillShape: v => Object.hasOwn(studio.SHAPES, v), motion: v => Object.hasOwn(studio.MOTIONS, v),
 };
 
 // returns the settings to use and the names of the fields that were rejected

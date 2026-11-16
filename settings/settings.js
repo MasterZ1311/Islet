@@ -63,6 +63,22 @@ for (const [id, call] of [["petDoudou", "useDoudou"], ["petPick", "pickPet"], ["
   });
 }
 
+// Theme Studio: share the current look as a code, or apply someone else's
+document.getElementById("themeCopy").addEventListener("click", async () => {
+  const code = await window.settings.themeCode();
+  try { await navigator.clipboard.writeText(code); status.textContent = "Theme code copied."; }
+  catch { document.getElementById("themeCode").value = code; status.textContent = "Copy the code from the box."; }
+});
+document.getElementById("themeApply").addEventListener("click", async () => {
+  const box = document.getElementById("themeCode");
+  try {
+    saved = await window.settings.themeApply(box.value);
+    fill(saved, snapshot());
+    box.value = "";
+    status.textContent = "Theme applied.";
+  } catch { status.textContent = "That isn't an Islet theme code."; }
+});
+
 const atStart = snapshot();
 window.settings.load().then(s => {
   saved = s; fill(s, atStart); drawPet(s); loaded = true;
