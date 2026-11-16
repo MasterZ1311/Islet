@@ -872,17 +872,21 @@ window.bridge.onShelf(files => {
     const b = document.createElement("button");
     b.className = "file";
     b.draggable = true;
-    b.title = `${f.name}\nDrag out to use it, double-click to show in folder`;
+    b.title = `${f.name}\nDrag out to use it, double-click to show in folder, right-click to resize, convert or compress`;
     if (f.icon) b.append(Object.assign(document.createElement("img"), { src: f.icon, alt: "" }));
     b.append(Object.assign(document.createElement("span"), { textContent: f.name }));
     b.ondragstart = e => { e.preventDefault(); window.bridge.shelfDrag(f.path); };
     b.ondblclick = () => window.bridge.shelfOpen(f.path);
+    b.oncontextmenu = e => { e.preventDefault(); window.bridge.shelfMenu(f.path); };
     const x = Object.assign(document.createElement("button"), { className: "x", textContent: "✕", title: `Remove ${f.name} from shelf` });
     x.onclick = () => window.bridge.shelfRemove(f.path);
     li.append(b, x);
     return li;
   }));
 });
+window.bridge.onShelfAction(d => toast(d.ok
+  ? { id: "shelf-" + d.name, app: "Shelf", badge: "▣", color: "#30d158", title: d.name, body: `${d.label} done. It's on the shelf, next to the original.` }
+  : { id: "shelf-err", app: "Shelf", badge: "!", color: "#ff453a", title: d.label, body: `Couldn't do that: ${d.error}` }));
 $("shelfAddBtn").onclick = () => window.bridge.shelfPick();
 // dropping files anywhere on the notch opens it on the shelf and adds them
 notch.addEventListener("dragover", e => {

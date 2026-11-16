@@ -24,6 +24,7 @@ const devices = require("./devices");
 const agentUpdates = require("./agent-updates");
 const volumeHud = require("./volume-hud");
 const { readShelf } = require("./shelf-file");
+const fileActions = require("./file-actions");
 const { helperLifecycle } = require("./helper-lifecycle");
 const { audioTarget } = require("./audio-target");
 const { needsWelcome, finishWelcome } = require("./welcome");
@@ -665,6 +666,22 @@ ipcMain.on("shelfDrag", (e, p) => {
   if (!shelf.some(f => f.path === p)) return;
   const icon = dragIcons.get(p);
   e.sender.startDrag({ file: p, icon: icon && !icon.isEmpty() ? icon : nativeImage.createFromDataURL(EMPTY_PNG) });
+});
+// smart file actions: right-click a shelf file to resize, convert or compress it;
+// the result lands next to the original and on the shelf
+ipcMain.on("shelfMenu", (e, p) => {
+  if (!shelf.some(f => f.path === p)) return;
+  let dir = false;
+  try { dir = fs.statSync(p).isDirectory(); } catch { return; }
+  const items = fileActions.actionsFor(p, dir).map(a => ({ label: a.label, click: async () => {
+    try {
+      const out = await fileActions.run(p, a.id, nativeImage);
+      await shelfAdd([out]);
+      send("shelfAction", { ok: true, label: a.label, name: path.basename(out) });
+    } catch (err) { send("shelfAction", { ok: false, label: a.label, error: err.message }); }
+  } }));
+  items.push({ type: "separator" }, { label: "Show in folder", click: () => shell.showItemInFolder(p) });
+  Menu.buildFromTemplate(items).popup({ window: BrowserWindow.fromWebContents(e.sender) });
 });
 // ---- phone drop: a phone on the same network sends files to the shelf and takes shelf files back ----
 ipcMain.handle("phoneStart", async () => {
