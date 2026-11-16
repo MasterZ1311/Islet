@@ -363,6 +363,40 @@ function renderBuild(now) {
   return true;
 }
 
+// ---- screen recording (#224): Windows' capture records plus OBS's own status ----
+let captures = [], obsRec; // obsRec: undefined = not connected to OBS, null = connected, not recording
+let obsAt = 0; // when OBS's duration was read, so the timer keeps running between reads
+window.bridge.onObsRec(({ state }) => { obsRec = state ? { ...state } : null; obsAt = Date.now(); render(); });
+const REC_WORD = { rec: "Recording", share: "Sharing", capture: "Capturing" };
+function recNow(now) {
+  const obsLive = obsRec && { ...obsRec, duration: obsRec.duration + (obsRec.paused ? 0 : now - obsAt) };
+  return window.Rec.current(captures, obsRec === undefined ? undefined : obsLive, now);
+}
+function renderRec(now) {
+  const r = recNow(now), pill = $("pillRec"), card = $("recCard");
+  pill.hidden = card.hidden = !r;
+  if (!r) return false;
+  const time = window.Rec.clock(now - r.start), what = `${r.paused ? "Paused" : REC_WORD[r.mode]} · ${r.name}`;
+  for (const el of [pill, card]) { el.dataset.mode = r.mode; el.classList.toggle("paused", r.paused); }
+  setText(pill.querySelector("b"), time);
+  pill.title = what;
+  setText($("recTime"), time);
+  setText($("recWhat"), r.name);
+  card.title = what;
+  card.dataset.proc = r.proc;
+  $("recPause").hidden = $("recStop").hidden = !r.obs;
+  const word = r.paused ? "Resume recording" : "Pause recording";
+  if ($("recPause").title !== word) {
+    $("recPause").title = word; $("recPause").setAttribute("aria-label", word);
+    $("recPause").querySelector("svg").innerHTML = r.paused ? '<path d="M8 5.5v13a1 1 0 0 0 1.5.86l10-6.5a1 1 0 0 0 0-1.72l-10-6.5A1 1 0 0 0 8 5.5z"/>' : '<rect x="7" y="5" width="3" height="14" rx="1"/><rect x="14" y="5" width="3" height="14" rx="1"/>';
+  }
+  return true;
+}
+$("recShow").onclick = e => { e.stopPropagation(); window.bridge.recControl("show", $("recCard").dataset.proc); };
+$("recPause").onclick = e => { e.stopPropagation(); window.bridge.recControl(obsRec?.paused ? "resume" : "pause"); };
+$("recStop").onclick = e => { e.stopPropagation(); window.bridge.recControl("stop"); };
+window.bridge.obsRec().then(r => { if (r.connected && obsRec === undefined) obsRec = null; });
+
 // ---- developer live activities: GitHub Actions runs, PR checks, deployments (#219) ----
 let ghLive = [];
 const GH_ICON = { run: "▶", pr: "⇄", deploy: "⇪" };
@@ -602,8 +636,8 @@ function render() {
   // focus round: a thin bar along the bottom of the pill fills up as the round goes
   notch.classList.toggle("focusing", focusing(now));
   if (focusing(now) && timerTotal) notch.style.setProperty("--focus-p", `${Math.min(100, 100 * (1 - (timerEnd - now) / timerTotal)).toFixed(2)}%`);
-  const building = renderBuild(now), agentNow = renderAgentNow(now, !!chip || building);
-  notch.classList.toggle("wide", !!chip || building || agentNow);
+  const recOn = renderRec(now), building = renderBuild(now), agentNow = renderAgentNow(now, !!chip || building || recOn);
+  notch.classList.toggle("wide", !!chip || building || agentNow || recOn);
 
   const s = shown();
   if (s) {
@@ -705,6 +739,7 @@ new MutationObserver(wakeWave).observe(notch, { attributes: true, attributeFilte
 // ---- mic / camera / screen capture in use ----
 window.bridge.onSystem(d => {
   fgApp = d.app || "";
+  captures = Array.isArray(d.capture) ? d.capture : [];
   const kinds = [["mic", "Microphone", d.mic], ["cam", "Camera", d.cam], ["screen", "Screen capture", d.screen]];
   privUse = kinds.filter(([, , apps]) => apps?.length);
   for (const box of [$("pillPriv"), $("priv")]) {

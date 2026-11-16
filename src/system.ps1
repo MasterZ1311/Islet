@@ -56,6 +56,21 @@ function InUse($cap) {
   , @($apps | Select-Object -Unique)
 }
 
+# screen capture with its start (Unix ms) and raw id, for the recording timer (#224)
+function Captures {
+  $out = @()
+  foreach ($cap in "graphicsCaptureProgrammatic", "graphicsCaptureWithoutBorder") {
+    foreach ($k in @(Get-ChildItem "$base\$cap") + @(Get-ChildItem "$base\$cap\NonPackaged")) {
+      if ($k.PSChildName -eq "NonPackaged") { continue }
+      $p = Get-ItemProperty $k.PSPath
+      if ($p.LastUsedTimeStart -gt 0 -and $p.LastUsedTimeStop -eq 0 -and -not ($out | Where-Object { $_.app -eq $k.PSChildName })) {
+        $out += [ordered]@{ app = $k.PSChildName; start = [int64](($p.LastUsedTimeStart - 116444736000000000) / 10000) }
+      }
+    }
+  }
+  , @($out)
+}
+
 $last = ""
 $fsPrev = $false; $fsStable = $false
 while ($true) {
@@ -69,6 +84,7 @@ while ($true) {
     mic        = InUse "microphone"
     cam        = InUse "webcam"
     screen     = [string[]]@(@(InUse "graphicsCaptureProgrammatic") + @(InUse "graphicsCaptureWithoutBorder") | Where-Object { $_ } | Select-Object -Unique)
+    capture    = Captures
     fullscreen = $fsStable
     app        = [string](Get-Process -Id ([Fg]::ForegroundPid())).ProcessName.ToLower() # what the pet acts out
   }

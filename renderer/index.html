@@ -15,6 +15,7 @@
     <span class="priv" id="pillPriv"></span>
     <svg class="moon" id="pillMoon" viewBox="0 0 24 24" aria-label="Do Not Disturb on" hidden><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
     <span class="agentnow" id="pillAgent" hidden></span>
+    <span class="rec" id="pillRec" role="status" hidden><i aria-hidden="true"></i><b></b></span>
     <span class="build" id="pillBuild" role="status" hidden><i aria-hidden="true"></i><b></b></span>
     <span class="chip" id="pillChip"></span>
     <i class="dot" aria-hidden="true"></i>
@@ -209,6 +210,14 @@
     <section class="stat" aria-label="Time and battery">
       <time id="clock"></time>
       <small id="date"></small>
+      <div class="reccard" id="recCard" hidden>
+        <span class="rech"><i aria-hidden="true"></i><b id="recTime"></b><small id="recWhat"></small></span>
+        <span class="recbtns">
+          <button type="button" id="recPause" title="Pause recording" aria-label="Pause recording" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3" height="14" rx="1"/><rect x="14" y="5" width="3" height="14" rx="1"/></svg></button>
+          <button type="button" id="recStop" class="stop" title="Stop recording" aria-label="Stop recording" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
+          <button type="button" id="recShow" title="Show the app" aria-label="Show the app"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></button>
+        </span>
+      </div>
       <span class="batt" id="batt" hidden></span>
       <small id="power"></small>
       <span class="priv" id="priv"></span>
@@ -222,6 +231,7 @@
 <script src="blackhole.js"></script>
 <script src="sliders.js"></script>
 <script src="pet.js"></script>
+<script src="rec.js"></script>
 <script src="units.js"></script>
 <script src="colors.js"></script>
 <script src="notch.js"></script>

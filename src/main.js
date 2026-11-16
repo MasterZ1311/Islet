@@ -58,6 +58,7 @@ const devTools = require("./dev-tools");
 const githubNotify = require("./github-notify");
 const ghActivity = require("./gh-activity");
 const mixer = require("./mixer");
+const recording = require("./recording");
 const configPath = () => path.join(app.getPath("userData"), "config.json");
 const DEFAULTS = { spotifyClientId: "", calendarIcsUrl: "", displayId: null, notifications: true, hideInFullscreen: true, lyrics: true, permissionWaitSeconds: 8, dnd: false, dndFrom: "", dndTo: "", dndSkipUntil: 0, clipboardHistory: true, volumeHud: true, focusDnd: true, universalSearch: true, weatherCity: "", weatherUnit: "C", downloadsFolder: "", size: "normal", accent: "album", idleHide: false, hideWindowsBanners: true, powerAnim: true, powerAnimStyle: "cinematic", pet: true, userName: "", customPet: "", screenshotShelf: true, agentUpdates: true };
 let config = { ...DEFAULTS };
@@ -196,9 +197,10 @@ ipcMain.on("seek", (_, sec) => {
 });
 
 // ---- mic / camera / screen capture in use + fullscreen apps ----
-let fullscreen = false;
+let fullscreen = false, lastSystem = null; // the helper only reports changes: a reloaded page gets the last one
 function onSystemLine(l) {
   let d; try { d = JSON.parse(l); } catch { return; }
+  lastSystem = d;
   send("system", d);
   fullscreen = d.fullscreen;
   applyVisibility();
@@ -609,6 +611,23 @@ function mixerAsk(cmd) {
   return mixerChain;
 }
 app.on("will-quit", () => mixerProc?.kill());
+
+// ---- screen recording (#224): OBS through its WebSocket server, "Show" for any recorder ----
+const OBS_WS = path.join(process.env.APPDATA || "", "obs-studio", "plugin_config", "obs-websocket", "config.json");
+const obs = recording.obsClient(() => { try { return JSON.parse(fs.readFileSync(OBS_WS, "utf8")); } catch { return null; } },
+  s => send("obsRec", { connected: true, state: s }));
+app.on("will-quit", () => obs.stop());
+ipcMain.handle("obsRec", () => ({ connected: obs.connected(), state: null }));
+ipcMain.handle("recControl", (_, action, proc) => {
+  if (action === "show") {
+    if (!mixer.validApp(proc)) return false;
+    // bring the recorder's window forward; the name goes in through the environment, never the command
+    execFile("powershell.exe", ["-NoProfile", "-Command", "$p = Get-Process -Name $env:ISLET_PROC -ErrorAction SilentlyContinue | Where-Object MainWindowHandle -ne 0 | Select-Object -First 1; if ($p) { (New-Object -ComObject WScript.Shell).AppActivate($p.Id) | Out-Null }"],
+      { windowsHide: true, timeout: 10000, env: { ...process.env, ISLET_PROC: proc } }, () => {});
+    return true;
+  }
+  return obs.control(action);
+});
 ipcMain.handle("mixerGet", async () => mixer.rows(await mixerAsk(["list"])));
 ipcMain.handle("mixerSet", async (_, app, kind, value) => mixer.rows(await mixerAsk(mixer.args(app, kind, value) || ["list"])));
 ipcMain.handle("quickSet", async (_, kind, value) => {
@@ -1120,6 +1139,7 @@ app.whenReady().then(() => {
   powerMonitor.on("suspend", () => { helpers.pause("asleep"); devices.stop(); btConnect.stop(); });
   powerMonitor.on("resume", () => { helpers.resume("asleep"); startDevices(); });
   win.webContents.on("did-finish-load", () => {
+    if (lastSystem) send("system", lastSystem);
     sendPower();
     iconFor = null; lastMediaLine = ""; readClaude({ force: true }); refreshSpotifyExtras(); send("timerLabel", timerLabel); send("timer", timerEnd); send("stopwatch", stopwatchStart); sendDnd(true); send("shelf", shelf); sendTheme(); lyricsNow.resend();
     sendClips();
