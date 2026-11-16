@@ -55,6 +55,8 @@ contextBridge.exposeInMainWorld("bridge", {
   onScreenshot: on("screenshot"),
   onDevices: on("devices"),
   onDeviceLow: on("deviceLow"),
+  onBtConnect: on("btConnect"),
+  onBtBattery: on("btBattery"),
   onAgentUpdate: on("agentUpdate"),
   onUpdateReady: on("updateReady"),
   onDndSummary: on("dndSummary"),

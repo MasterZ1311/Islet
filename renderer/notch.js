@@ -1055,6 +1055,13 @@ $("colorPick").onclick = async () => {
 let btDevices = [];
 window.bridge.onDevices(list => { btDevices = list || []; });
 window.bridge.onDeviceLow(d => toast({ app: "Bluetooth", badge: "!", color: "#d1453b", title: `${d.name} battery low`, body: `${d.battery}% left. Charge it soon.` }));
+// Bluetooth device island: a pop-up when a device connects or disconnects
+const btIcon = n => /bud|pod|ear|head|phone|airdopes|buzz|sound|audio|speaker|jbl|sony|wh-|wf-/i.test(n) ? "🎧" : /mouse/i.test(n) ? "🖱" : /keyboard|keys/i.test(n) ? "⌨" : "ᛒ";
+const btBody = b => b == null ? "Connected" : `Connected · ${b}% battery`;
+window.bridge.onBtConnect(e => toast(e.type === "connected"
+  ? { id: "bt-" + e.name, app: "Bluetooth", badge: btIcon(e.name), color: "#0a84ff", title: e.name, body: btBody(e.battery), ms: 4000 }
+  : { id: "bt-" + e.name, app: "Bluetooth", badge: btIcon(e.name), color: "#636366", title: e.name, body: "Disconnected", ms: 3000 }));
+window.bridge.onBtBattery(d => toast({ id: "bt-" + d.name, app: "Bluetooth", badge: btIcon(d.name), color: "#0a84ff", title: d.name, body: btBody(d.battery), ms: 4000 }));
 window.bridge.onAgentUpdate(u => toast({ app: u.name, badge: "↑", color: "#6b5bd6", title: `${u.name} ${u.version} is out`, body: `Update with: ${u.update}`, ms: 7000 }));
 const gb = n => `${(n / 1024 ** 3).toFixed(1)} GB`;
 async function drawSys() {

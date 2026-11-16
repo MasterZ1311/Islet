@@ -21,6 +21,7 @@ const quickSettings = require("./quick-settings");
 const downloads = require("./downloads");
 const screenshots = require("./screenshots");
 const devices = require("./devices");
+const btConnect = require("./bt-connect");
 const agentUpdates = require("./agent-updates");
 const volumeHud = require("./volume-hud");
 const { readShelf } = require("./shelf-file");
@@ -943,6 +944,16 @@ function startScreenshots() {
 let btDevices = [];
 function startDevices() {
   devices.poll(list => { btDevices = list; send("devices", list); }, d => send("deviceLow", d));
+  // connect / disconnect pop-ups, with the battery level once Windows reports it
+  btConnect.start(ev => {
+    send("btConnect", { ...ev, battery: btDevices.find(d => d.name === ev.name)?.battery ?? null });
+    // a newly connected device reports its battery a few seconds later: read it then
+    if (ev.type === "connected") setTimeout(() => devices.poll(list => {
+      btDevices = list; send("devices", list);
+      const b = list.find(d => d.name === ev.name)?.battery;
+      if (b != null) send("btBattery", { name: ev.name, battery: b });
+    }, d => send("deviceLow", d)), 8000);
+  });
 }
 
 // ---- timer + pomodoro ----
@@ -1076,7 +1087,7 @@ app.whenReady().then(() => {
   for (const ev of ["on-ac", "on-battery", "resume"]) powerMonitor.on(ev, sendPower);
   powerMonitor.on("lock-screen", () => { locked = true; applyBanners(); helpers.pause("locked"); });
   powerMonitor.on("unlock-screen", () => { locked = false; applyBanners(); helpers.resume("locked"); });
-  powerMonitor.on("suspend", () => { helpers.pause("asleep"); devices.stop(); });
+  powerMonitor.on("suspend", () => { helpers.pause("asleep"); devices.stop(); btConnect.stop(); });
   powerMonitor.on("resume", () => { helpers.resume("asleep"); startDevices(); });
   win.webContents.on("did-finish-load", () => {
     sendPower();
@@ -1132,6 +1143,7 @@ app.on("window-all-closed", e => e.preventDefault());
 app.on("before-quit", () => { app.isQuitting = true; });
 app.on("will-quit", () => {
   phoneDrop.stop();
+  btConnect.stop();
   globalShortcut.unregisterAll();
   // keeps what failed for the next start
   if (bannersSaved) { notifications.restoreBanners(bannersSaved); try { saveBannersJournal(bannersSaved); } catch (e) { console.warn("banners", e.message); } }
