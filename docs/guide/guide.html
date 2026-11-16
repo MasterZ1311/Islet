@@ -90,14 +90,14 @@ pre.t { padding: 3mm 4mm; margin: 1.5mm 0 1.5mm; font-size: 8pt; }
     <div><b>04</b>Tech stack</div><div><b>05</b>Architecture</div><div><b>06</b>How each part works</div>
     <div><b>07</b>Repository map</div><div><b>08</b>Install and run</div><div><b>09</b>Using Islet</div>
     <div><b>10</b>Claude Code and Codex</div><div><b>11</b>Settings</div><div><b>12</b>Build, test, debug</div>
-    <div><b>13</b>Privacy, troubleshooting, uninstall</div><div><b>14</b>What's new in 2.0 to 2.3, and for coding</div>
+    <div><b>13</b>Privacy, troubleshooting, uninstall</div><div><b>14</b>What's new in 2.0 to 2.5, and for coding</div>
     <div><b>15</b>Islet in plain English</div><div><b>16</b>Words you need</div><div><b>17</b>Follow the data</div>
     <div><b>18</b>Read the code yourself</div><div><b>19</b>Engineering ideas it shows</div><div><b>20</b>Hard problems and limits</div>
     <div><b>21</b>Interview questions and answers</div><div><b>22</b>Cheat sheet and practice</div>
   </div>
   <div class="stats">
     <div><b>8</b><small>data sources</small></div><div><b>20</b><small>settings</small></div>
-    <div><b>13</b><small>notch states</small></div><div><b>375</b><small>passing tests</small></div>
+    <div><b>13</b><small>notch states</small></div><div><b>404</b><small>passing tests</small></div>
   </div>
   <div class="foot"><span>Islet · Project Guide</span><span>© 2026 Gopinath. All rights reserved.</span><span class="n"></span></div>
 </section>
@@ -599,6 +599,33 @@ node_modules\electron\dist\electron.exe . --remote-debugging-port=9333</pre>
   <ul style="font-size:9.5pt">
     <li>Git follows the agent's folder, not the focused editor; build status only sees commands an agent runs.</li>
     <li><b>Tests</b>: 347 → 359 (<code>dev-tools.test.js</code>, <code>build-status.test.js</code>). Importing a zipped pet now also works when Islet starts from PowerShell 7.</li>
+  </ul>
+  <div class="foot"><span>Islet · Project Guide</span><span>© 2026 Gopinath. All rights reserved.</span><span class="n"></span></div>
+</section>
+
+<section class="page">
+  <div class="kick">SECTION 14 · 2.4 AND 2.5</div>
+  <h1>What's new in 2.4 and 2.5</h1>
+  <div class="lead">Roadmap chunks 1 and 2: the notch reacts to your files, devices, builds, audio, screen and notifications, and you can restyle it. On <code>main</code>, not released yet.</div>
+  <h2>2.4: smart actions and live activities</h2>
+  <ul style="font-size:9.5pt">
+    <li><b>Smart file actions</b>: right-click a shelf file to resize, fit to 1920 px, convert PNG↔JPG or compress an image, or ZIP any file or folder. Results land next to the original and never overwrite it.</li>
+    <li><b>Bluetooth island</b>: earbuds, mice and keyboards pop up on connect ("Connected · 80% battery") and disconnect. The Bluetooth tile now really turns Bluetooth on.</li>
+    <li><b>Developer live activities</b>: with the <code>gh</code> CLI signed in, running GitHub Actions, PR checks and deployments for your projects show in the pill; a pop-up says passed or failed, and the pet cheers or startles. <code>"githubLive": false</code> turns it off.</li>
+    <li><b>Lighter when idle</b>: animations play a few times and then hold still, so an idle notch uses a fraction of the CPU it did.</li>
+  </ul>
+  <h2>2.5: control and style</h2>
+  <ul style="font-size:9.5pt">
+    <li><b>Per-app volume</b>: Home → volume row → <b>Apps</b> lists every app making sound, with its own slider and mute.</li>
+    <li><b>Screen recording</b>: a red dot and timer in the pill while an app records or shares your screen, with the app's name. With OBS's WebSocket server on, Pause, Resume and Stop work from the notch.</li>
+    <li><b>Notification actions</b>: pop-ups get Open, Snooze 10 min, Dismiss (also clears it from Action Center) and Reply in app.</li>
+    <li><b>Theme Studio</b> (Settings → Look): themes Midnight, Graphite, Ocean, Forest, Mocha and Plum; pill shapes Notch, Island and Square; motion Bouncy, Smooth, Snappy or Off; share a look as an <code>islet-theme:</code> code.</li>
+    <li><b>Snappier Home</b>: Quick Settings load as the notch opens, and the charging glow shows over the tall view.</li>
+  </ul>
+  <h2>Around the code</h2>
+  <ul style="font-size:9.5pt">
+    <li><b>New modules</b>: <code>file-actions.js</code>, <code>bt-connect.js/.ps1</code>, <code>gh-activity.js</code>, <code>mixer.js/.ps1</code> (one PowerShell that stays up and answers lines), <code>recording.js</code>, <code>notif-dismiss.ps1</code>, <code>theme-studio.js</code>, <code>renderer/rec.js</code>.</li>
+    <li><b>Tests</b>: 375 → 404.</li>
   </ul>
   <div class="foot"><span>Islet · Project Guide</span><span>© 2026 Gopinath. All rights reserved.</span><span class="n"></span></div>
 </section>
