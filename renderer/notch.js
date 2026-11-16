@@ -175,9 +175,9 @@ const hudSvg = body => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg
 const NOTE_ICONS = {
   github: hudSvg('<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>'),
   run: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/>'),
-  pr: hudSvg('<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7M6 9v12"/>'),
+  pr: hudSvg('<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7M6 9v12M15.5 3.5 13 6l2.5 2.5"/>'),
   deploy: hudSvg('<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>'),
-  batteryLow: hudSvg('<rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M6 11v2"/>'),
+  batteryLow: hudSvg('<rect x="1.5" y="6" width="17" height="12" rx="2.5"/><path d="M22 10.5v3M10 9v3.5M10 15.2h.01"/>'),
   timer: hudSvg('<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>'),
   calendar: hudSvg('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
   camera: hudSvg('<path d="m16 13 5.22 3.48a.5.5 0 0 0 .78-.42V7.87a.5.5 0 0 0-.75-.43L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>'),
@@ -191,7 +191,7 @@ const NOTE_ICONS = {
   alert: hudSvg('<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>'),
   passed: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
   failed: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'),
-  keyboard: hudSvg('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>'),
+  keyboard: hudSvg('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h1M10 8h1M14 8h1M17 8h1M8 12h1M12 12h1M16 12h1M7 16h10"/>'),
 };
 const HUD_ICONS = {
   low: hudSvg(HUD_SPEAKER + '<path d="M15.2 9.6a3.4 3.4 0 0 1 0 4.8"/>'),
