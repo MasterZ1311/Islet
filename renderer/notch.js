@@ -698,7 +698,8 @@ let fittedPillWidth = 0;
 function fitPill() {
   const pill = document.querySelector(".pill"), ps = getComputedStyle(pill);
   const items = [...pill.children].filter(el => el.offsetWidth && getComputedStyle(el).visibility !== "hidden");
-  const margins = el => { const c = getComputedStyle(el); return parseFloat(c.marginLeft) + parseFloat(c.marginRight); };
+  // only the pet has fixed margins; the chips use margin-left: auto, which would feed the pill's own extra width back in and grow it forever
+  const margins = el => { if (!el.classList.contains("pet")) return 0; const c = getComputedStyle(el); return parseFloat(c.marginLeft) + parseFloat(c.marginRight); };
   const w = items.reduce((n, el) => n + el.offsetWidth + margins(el), 0) + 8 * (items.length - 1) + parseFloat(ps.paddingLeft) + parseFloat(ps.paddingRight); // items, gaps, side padding
   const next = Math.max(90, Math.ceil(w));
   if (next !== fittedPillWidth) {
