@@ -748,7 +748,7 @@ function drawHello() {
 
 // ---- tools: one panel at a time, in the tall view with the dock under it ----
 const PANELS = [...document.querySelectorAll(".panel")].map(p => p.id);
-const OPENED = { dashPanel: () => { refreshQuick(); drawHello(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: drawTimer, weatherPanel: drawWeather, unitsPanel: drawUnits, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
+const OPENED = { dashPanel: () => { refreshQuick(); drawHello(); closeMixer(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: drawTimer, weatherPanel: drawWeather, unitsPanel: drawUnits, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
 let openPanel = null;
 // toggle: a second click on the button that opened it closes it (the dock only switches)
 function showPanel(id, toggle = true) {
@@ -797,6 +797,50 @@ for (const [id, kind, scale] of [["qBright", "bright", 1], ["qVol", "vol", 100]]
   let quickTimer;
   $(id).oninput = () => { $(id + "N").textContent = $(id).value; clearTimeout(quickTimer); quickTimer = setTimeout(() => quickDo(kind, $(id).value / scale), 120); };
 }
+// ---- per-app volume (#223): one row per app with sound, under the volume slider ----
+const SPEAKER = '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>';
+const SPEAKER_ON = SPEAKER + '<path d="M16 9a5 5 0 0 1 0 6"/>', SPEAKER_OFF = SPEAKER + '<path d="m22 9-6 6"/><path d="m16 9 6 6"/>';
+let mixerSeq = 0;
+function drawMixer(list) {
+  const ul = $("qMixer");
+  if (!list.length) { ul.replaceChildren(Object.assign(document.createElement("li"), { className: "empty", textContent: "No app is using the speakers" })); return; }
+  // rows being dragged keep their slider; everything else is rebuilt
+  const held = document.activeElement?.closest?.(".qmixer li")?.dataset.app;
+  ul.replaceChildren(...list.map(r => {
+    if (r.app === held) return ul.querySelector(`li[data-app="${CSS.escape(held)}"]`);
+    const li = document.createElement("li"), mute = document.createElement("button"), range = document.createElement("input"), out = document.createElement("output");
+    li.dataset.app = r.app;
+    li.classList.toggle("active", r.active);
+    li.classList.toggle("muted", r.mute);
+    mute.type = "button";
+    mute.title = r.mute ? `Unmute ${r.name}` : `Mute ${r.name}`;
+    mute.setAttribute("aria-pressed", r.mute);
+    mute.innerHTML = `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${r.mute ? SPEAKER_OFF : SPEAKER_ON}</svg>`;
+    mute.onclick = () => mixerDo(r.app, "mute", !r.mute);
+    Object.assign(range, { type: "range", min: 0, max: 100, value: Math.round(r.vol * 100) });
+    range.setAttribute("aria-label", `${r.name} volume`);
+    out.textContent = range.value;
+    let t;
+    range.oninput = () => { out.textContent = range.value; clearTimeout(t); t = setTimeout(() => mixerDo(r.app, "vol", range.value / 100), 120); };
+    li.append(Object.assign(document.createElement("b"), { textContent: r.name, title: r.active ? `${r.name} · playing` : r.name }), mute, range, out);
+    return li;
+  }));
+}
+function mixerDo(app, kind, value) {
+  const seq = ++mixerSeq;
+  return (kind ? window.bridge.mixerSet(app, kind, value) : window.bridge.mixerGet()).then(list => { if (seq === mixerSeq) drawMixer(list); });
+}
+function closeMixer() { $("qMixer").hidden = true; $("qTiles").hidden = false; $("qMixBtn").setAttribute("aria-expanded", false); }
+$("qMixBtn").onclick = e => {
+  e.preventDefault(); // inside the volume label: don't focus the slider
+  const open = $("qMixer").hidden;
+  $("qMixer").hidden = !open;
+  $("qMixBtn").setAttribute("aria-expanded", open);
+  $("qTiles").hidden = open; // the apps take the tiles' place, the panel has no room for both
+  if (open) mixerDo();
+};
+// while it's open, apps that start or stop playing show up within a few seconds
+setInterval(() => { if (openPanel === "dashPanel" && !$("qMixer").hidden && !document.hidden) mixerDo(); }, 4000);
 for (const b of document.querySelectorAll("[data-panel]")) b.onclick = () => showPanel(b.dataset.panel, !b.closest(".dock"));
 $("dockMore").onclick = () => window.bridge.openSettings();
 setInterval(() => { if (openPanel === "clockPanel") drawClocks(); else if (openPanel === "timerPanel") drawTimer(); else if (openPanel === "sysPanel") drawSys(); }, 1000);

@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld("bridge", {
   search: q => ipcRenderer.invoke("search", q),
   searchRun: id => ipcRenderer.send("searchRun", id),
   quickGet: () => ipcRenderer.invoke("quickGet"),
+  mixerGet: () => ipcRenderer.invoke("mixerGet"),
+  mixerSet: (app, kind, value) => ipcRenderer.invoke("mixerSet", app, kind, value),
   quickSet: (kind, value) => ipcRenderer.invoke("quickSet", kind, value),
   onSpotifyExtras: on("spotifyExtras"),
   onNotification: on("notification"),

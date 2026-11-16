@@ -57,6 +57,7 @@ const { checkConfig, clock } = require("./config-check");
 const devTools = require("./dev-tools");
 const githubNotify = require("./github-notify");
 const ghActivity = require("./gh-activity");
+const mixer = require("./mixer");
 const configPath = () => path.join(app.getPath("userData"), "config.json");
 const DEFAULTS = { spotifyClientId: "", calendarIcsUrl: "", displayId: null, notifications: true, hideInFullscreen: true, lyrics: true, permissionWaitSeconds: 8, dnd: false, dndFrom: "", dndTo: "", dndSkipUntil: 0, clipboardHistory: true, volumeHud: true, focusDnd: true, universalSearch: true, weatherCity: "", weatherUnit: "C", downloadsFolder: "", size: "normal", accent: "album", idleHide: false, hideWindowsBanners: true, powerAnim: true, powerAnimStyle: "cinematic", pet: true, userName: "", customPet: "", screenshotShelf: true, agentUpdates: true };
 let config = { ...DEFAULTS };
@@ -582,6 +583,34 @@ function runScript(file, args) {
 }
 const quickState = async () => quickSettings.state(...await Promise.all([runScript("radios.ps1", ["get"]), runScript("quickset.ps1", ["get"])]));
 ipcMain.handle("quickGet", quickState);
+// per-app volume (#223)
+// one helper stays up while the mixer is used (a fresh PowerShell per call took ~2 s), and
+// quits after a minute without requests
+let mixerProc = null, mixerIdle = null, mixerChain = Promise.resolve();
+function mixerAsk(cmd) {
+  const ask = () => new Promise(resolve => {
+    if (!mixerProc) {
+      mixerProc = spawn("powershell.exe", [...PS, path.join(__dirname, "mixer.ps1"), "serve"], { windowsHide: true });
+      mixerProc.stdout.setEncoding("utf8");
+      mixerProc.on("exit", () => { mixerProc = null; });
+      mixerProc.on("error", e => console.warn("mixer", e.message));
+    }
+    const p = mixerProc;
+    let buf = "";
+    const done = v => { clearTimeout(t); p.stdout.off("data", onData); resolve(v); };
+    const onData = d => { buf += d; const i = buf.indexOf("\n"); if (i >= 0) { try { done(JSON.parse(buf.slice(0, i))); } catch { done(null); } } };
+    const t = setTimeout(() => { p.kill(); done(null); }, 15000);
+    p.stdout.on("data", onData);
+    p.stdin.write(cmd.join("\t") + "\n");
+  });
+  mixerChain = mixerChain.then(ask, ask); // one question at a time
+  clearTimeout(mixerIdle);
+  mixerIdle = setTimeout(() => { mixerProc?.stdin.end(); }, 60000);
+  return mixerChain;
+}
+app.on("will-quit", () => mixerProc?.kill());
+ipcMain.handle("mixerGet", async () => mixer.rows(await mixerAsk(["list"])));
+ipcMain.handle("mixerSet", async (_, app, kind, value) => mixer.rows(await mixerAsk(mixer.args(app, kind, value) || ["list"])));
 ipcMain.handle("quickSet", async (_, kind, value) => {
   const a = quickSettings.action(kind, value);
   if (!a) return quickState();

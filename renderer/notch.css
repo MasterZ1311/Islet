@@ -384,6 +384,24 @@ button.saveErr { cursor: pointer; }
 .qslide svg { width: 18px; height: 18px; fill: #d4d4d8; flex: none; }
 .qslide input { flex: 1; accent-color: #bf8cff; height: 16px; }
 .qslide output { width: 28px; text-align: right; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+/* per-app volume: opens under the volume slider */
+.qmixbtn { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 6px 0 4px; border-radius: 7px; color: var(--muted); font: inherit; font-size: 10.5px; }
+.qmixbtn:hover { background: var(--secondary); color: var(--text); }
+.qslide .qmixbtn svg.i { width: 13px; height: 13px; stroke: currentColor; transition: rotate .2s var(--ease-out, ease); }
+.qslide .qmixbtn[aria-expanded="true"] svg.i { rotate: 180deg; }
+.qmixer { list-style: none; margin: -4px 0 0; padding: 0 2px 0 30px; display: grid; gap: 6px; max-height: 150px; overflow-y: auto; }
+.qmixer[hidden], .qtiles[hidden] { display: none; }
+.qmixer li { display: grid; grid-template-columns: 92px 22px 1fr 28px; align-items: center; gap: 8px; font-size: 11px; color: #d4d4d8; }
+.qmixer li b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qmixer li b::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; background: var(--border); }
+.qmixer li.active b::before { background: #34c759; }
+.qmixer li button { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: #a1a1aa; }
+.qmixer li button:hover { background: var(--secondary); color: var(--text); }
+.qmixer li button svg.i { width: 14px; height: 14px; }
+.qmixer li.muted input { opacity: .4; }
+.qmixer li input { accent-color: var(--primary); height: 14px; min-width: 0; }
+.qmixer li output { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.qmixer .empty { display: block; color: var(--muted); }
 /* dock: one rounded bar of icons; the open one gets a dot under it */
 .dock { position: fixed; left: 50%; bottom: 8px; z-index: 21; translate: -50% 0; opacity: 0; pointer-events: none; transition: opacity .2s; display: flex; align-items: center; justify-content: center; gap: 2px; padding: 4px 6px; border-radius: 18px; background: #ffffff0d; box-shadow: inset 0 0 0 1px #ffffff14; }
 .notch.open.dash .dock { opacity: 1; pointer-events: auto; transition-delay: .12s; }
