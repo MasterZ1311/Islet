@@ -2,7 +2,7 @@
 
 Islet is a Dynamic-Island-style notch for Windows 10/11, built with Electron. The folder is still called `notch`. Repo: https://github.com/goprocker/Islet (branch `main`). Website: https://islet.loopfound.in (from `landing/`, deployed by Netlify). The full session history is in `SESSION_HANDOFF.md` (gitignored); read its section 0 first.
 
-- Run: `npm start`. Test: `npm test` (`node --test test/*.test.js`, 375 passing on 2026-11-13; current version 2.3.61).
+- Run: `npm start`. Test: `npm test` (`node --test test/*.test.js`, 404 passing on 2026-11-16; current version 2.3.61).
 - Commits: Conventional Commit subject plus a specific body; push straight to `main`, with no PR. Another session (co-author "Jarvis") also pushes to `main`, so `git fetch` before starting.
 - Line endings: most files are CRLF. Scripted edits must keep `\r\n`, or the replacements silently miss.
 - Installer: per machine (admin). `build/installer.nsh` adds/removes the "Islet Phone drop" firewall rule (private profile, program-based).
@@ -24,4 +24,4 @@ Islet is a Dynamic-Island-style notch for Windows 10/11, built with Electron. Th
 
 1. Website screenshots: replace the mock-ups in `landing/features.html` and refresh `landing/shots/` and `open.png` with `docs/tools/*.png`.
 2. SmartScreen: only code signing fixes it. The SignPath Foundation rejected the application on 2026-11-04 (not enough public traction: stars, forks, articles, discussions); they invite reapplying once the project has more visibility, or using a paid SignPath subscription. The site now says the installer is unsigned. The signing steps in `release.yml` stay dormant until `SIGNPATH_API_TOKEN` and `SIGNPATH_ORGANIZATION_ID` are set. The user will try another route; if it is a different signer, update `release.yml`, `landing/downloads.html` and `landing/privacy.html`. Never try to get around SmartScreen.
-3. Optional: retake the guide screenshots after the user sets their name and plays music. The current Home screenshot says "Still up, Gopin" and its sliders show 0. The guide still says 2.2.0.
+3. Optional: retake the guide screenshots after the user sets their name and plays music. The current Home screenshot says "Still up, Gopin" and its sliders show 0.
