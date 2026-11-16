@@ -840,7 +840,7 @@ function drawHello() {
 
 // ---- tools: one panel at a time, in the tall view with the dock under it ----
 const PANELS = [...document.querySelectorAll(".panel")].map(p => p.id);
-const OPENED = { dashPanel: () => { prefetchQuick(); drawHello(); closeMixer(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: () => { drawTimer(); drawFocusStats(); }, weatherPanel: drawWeather, unitsPanel: drawUnits, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
+const OPENED = { dashPanel: () => { prefetchQuick(); drawHello(); closeMixer(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: () => { drawTimer(); drawFocusStats(); }, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
 let openPanel = null;
 // toggle: a second click on the button that opened it closes it (the dock only switches)
 function showPanel(id, toggle = true) {
@@ -1203,35 +1203,6 @@ $("devTabs").onclick = e => { const b = e.target.closest("button"); if (b) devTa
 let savedDevTab = "git";
 try { savedDevTab = localStorage.getItem("devTab") || "git"; } catch {}
 devTab(savedDevTab);
-
-// ---- weather: now, the next hours and the next days ----
-function drawWeather() {
-  const ok = wx && !wx.error;
-  $("wEmpty").hidden = ok; $("wEmpty").textContent = wx?.error || "Set a city in Settings to see the weather.";
-  $("wPlace").textContent = ok ? wx.place : "Weather";
-  // a forecast kept from last time says how old it is until the fresh one arrives
-  $("wMeta").textContent = ok && wx.humidity != null ? `Humidity ${wx.humidity}% · Wind ${wx.wind} km/h${wx.cached ? ` · from ${ago(Date.now() - wx.cached)} ago` : ""}` : "";
-  $("wIcon").textContent = ok ? wx.icon : ""; $("wTemp").textContent = ok ? `${wx.temp}°${wx.unit}` : ""; $("wLabel").textContent = ok ? wx.label : "";
-  const li = (top, icon, bottom) => { const e = document.createElement("li"); e.append(Object.assign(document.createElement("small"), { textContent: top }), Object.assign(document.createElement("span"), { textContent: icon }), Object.assign(document.createElement("b"), { textContent: bottom })); return e; };
-  $("wHours").replaceChildren(...(ok ? wx.hours || [] : []).map(h => li(h.time, h.icon, `${h.temp}°`)));
-  $("wDays").replaceChildren(...(ok ? wx.days || [] : []).map(d => li(new Date(d.date + "T12:00").toLocaleDateString([], { weekday: "short" }), d.icon, `${d.hi}° / ${d.lo}°`)));
-}
-window.bridge.onWeather(() => { if (openPanel === "weatherPanel") drawWeather(); });
-
-// ---- units ----
-function drawUnits(resetUnits) {
-  const k = $("uKind");
-  if (!k.options.length) { k.append(...Object.entries(window.Units.KINDS).map(([id, x]) => new Option(x.label, id))); resetUnits = true; }
-  const names = Object.keys(window.Units.KINDS[k.value].units);
-  if (resetUnits) {
-    for (const [s, i] of [[$("uFrom"), 0], [$("uTo"), 1]]) { s.replaceChildren(...names.map(n => new Option(n, n))); s.value = names[Math.min(i + (k.value === "length" ? 1 : 0), names.length - 1)]; }
-  }
-  const v = $("uIn").value, from = $("uFrom").value;
-  $("uOut").textContent = window.Units.show(window.Units.convert(v, k.value, from, $("uTo").value));
-  $("uAll").replaceChildren(...names.filter(n => n !== from).map(n => Object.assign(document.createElement("li"), { textContent: `${window.Units.show(window.Units.convert(v, k.value, from, n))} ${n}` })));
-}
-$("uKind").onchange = () => drawUnits(true);
-for (const id of ["uIn", "uFrom", "uTo"]) $(id).oninput = () => drawUnits(false);
 
 // ---- colour picker: Chromium's EyeDropper samples any pixel on screen ----
 let colors = [];
