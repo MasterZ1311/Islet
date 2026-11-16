@@ -89,7 +89,8 @@
     for (const el of els) {
       if (el.dataset.kind !== "custom") continue;
       const f = frameAt(el.dataset.mood, now, Number(el.dataset.rows));
-      el.style.backgroundPosition = `${f.x}% ${f.y}%`;
+      const pos = `${f.x}% ${f.y}%`;
+      if (el.style.backgroundPosition !== pos) el.style.backgroundPosition = pos;
     }
   }
 

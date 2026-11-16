@@ -49,7 +49,7 @@ body {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 10;
   box-shadow: inset 0 0 0 2px #7dffa0, inset 0 0 8px 2px #63d47a, inset 0 -6px 22px 4px #63d47acc; opacity: 0; transition: opacity .4s;
 }
-.notch.charging::after { opacity: 1; animation: edgeglow 2.4s ease-in-out infinite; }
+.notch.charging::after { opacity: 1; animation: edgeglow 2.4s ease-in-out 3; } /* then a steady glow: no redraws while plugged in */
 @keyframes edgeglow { 50% { opacity: .6; } }
 /* pill is only 30px tall: glow hugs the edges evenly instead of filling from the bottom */
 .notch:not(.open):not(.toast)::after { box-shadow: inset 0 0 0 1.5px #7dffa0cc, inset 0 0 6px 1px #63d47a88; }
@@ -59,8 +59,9 @@ body {
   background: linear-gradient(90deg, transparent 0 35%, #d6ffe0 50%, transparent 65% 100%) no-repeat;
   background-size: 200% 100%; filter: drop-shadow(0 0 3px var(--ok)); opacity: 0; transition: opacity .4s;
 }
-.notch.charging::before { opacity: 1; animation: streak 1.8s linear infinite; }
+.notch.charging::before { opacity: 1; animation: streak 1.8s linear 3, gone 0s 5.4s forwards; }
 @keyframes streak { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@keyframes gone { to { opacity: 0; } }
 
 .art { background: var(--card); object-fit: cover; }
 .art:not([src]) { visibility: hidden; }
@@ -206,7 +207,7 @@ body {
 @keyframes bolt { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.4); opacity: 1; } }
 @keyframes sweep { from { transform: scaleX(0); } }
 /* while charging: slow soft green glow */
-.batt.charging svg { animation: glow 2.4s ease-in-out infinite; }
+.batt.charging svg { animation: glow 2.4s ease-in-out 3 forwards; }
 @keyframes glow { 0%, 100% { filter: drop-shadow(0 0 1px #63d47a66); } 50% { filter: drop-shadow(0 0 4px var(--ok)) drop-shadow(0 0 7px #63d47a99); } }
 .side.soon { color: var(--accent); }
 .side.join { color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
@@ -462,6 +463,8 @@ button.saveErr { cursor: pointer; }
 .open:not(.dash) .walker { opacity: 1; transition-delay: .3s; }
 .walker.sleep, .walker.dance, .walker.alert, .walker.sick { animation-play-state: paused; }
 .walker.dance { animation: stroll 70s linear infinite, bop .5s ease-in-out infinite alternate; animation-play-state: paused, running; }
+/* off screen (pill, or a tool open): stop moving so nothing redraws */
+.notch:not(.open) .walker, .notch.dash .walker { animation-play-state: paused !important; }
 @keyframes stroll { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(584px); } }
 
 /* what the pet says: plain text beside it, inside the notch */

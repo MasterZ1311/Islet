@@ -185,7 +185,9 @@ navigator.getBattery?.().then(b => {
   const show = () => {
     const pct = Math.round(b.level * 100);
     for (const el of [$("batt"), $("pillBatt")]) {
-      el.innerHTML = `${battIcon(b.level, b.charging)}${pct}%`;
+      // rebuilt only when it changes: a new icon restarts its glow, and Windows sends time updates often
+      const html = `${battIcon(b.level, b.charging)}${pct}%`;
+      if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
       el.classList.toggle("charging", b.charging);
       el.classList.toggle("low", !b.charging && b.level <= 0.2);
       el.title = b.charging ? `Charging, ${pct}%` : `Battery ${pct}%`;
@@ -478,22 +480,24 @@ function accentFrom(src) {
 let lyricLines = null, lyricNow = "";
 window.bridge.onLyrics(l => { lyricLines = l; lyricNow = ""; render(); });
 
+// sets text only when it differs, so a twice-a-second refresh doesn't relayout an idle notch
+const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
 function render() {
   const now = Date.now();
   // time column: clock, and under it the date, or the volume right after a scroll
   const d = new Date(), date = $("date");
   const showVol = now < volShownUntil && volume !== null;
-  $("clock").textContent = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  $("rowTime").textContent = $("clock").textContent; // stands in for the music bars while no song plays
-  $("pillTime").textContent = $("clock").textContent;
-  date.textContent = showVol ? `Volume ${Math.round(volume * 100)}%` : d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+  setText($("clock"), d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }));
+  setText($("rowTime"), $("clock").textContent); // stands in for the music bars while no song plays
+  setText($("pillTime"), $("clock").textContent);
+  setText(date, showVol ? `Volume ${Math.round(volume * 100)}%` : d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" }));
   date.classList.toggle("vol", showVol);
 
   if (track) {
-    $("title").textContent = track.title || "Unknown";
-    $("artist").textContent = track.artist || "";
+    setText($("title"), track.title || "Unknown");
+    setText($("artist"), track.artist || "");
     const pos = shownPos(now);
-    $("pos").textContent = fmt(pos); $("dur").textContent = fmt(track.duration || 0);
+    setText($("pos"), fmt(pos)); setText($("dur"), fmt(track.duration || 0));
     $("prog").style.width = (track.duration ? pos / track.duration * 100 : 0) + "%";
     // current lyric line (slightly early so it lands with the singing)
     if (lyricLines) {
@@ -502,9 +506,9 @@ function render() {
       lyricNow = cur ? (cur.line || "♪") : "";
     }
   } else {
-    $("title").textContent = "Nothing playing";
-    $("artist").textContent = "Play music in Spotify or a browser to see it here";
-    $("pos").textContent = $("dur").textContent = "0:00";
+    setText($("title"), "Nothing playing");
+    setText($("artist"), "Play music in Spotify or a browser to see it here");
+    setText($("pos"), "0:00"); setText($("dur"), "0:00");
     $("prog").style.width = "0";
   }
   window.Sliders.syncSeek($("seekArea"), track ? shownPos(now) : 0, track?.duration || 0);
@@ -521,7 +525,7 @@ function render() {
   $("like").title = extras.connected ? "" : "Like / unlike (sends Alt+Shift+B to Spotify)";
   // lyrics win over "up next" when the song has them; a song without any says so once the lookup is done
   const lyricShown = !!(lyricLines && track), noLyrics = lyricLines === false && !!track && !extras.next;
-  $("upnext").textContent = lyricShown ? lyricNow : extras.next ? `Up next: ${extras.next.title} · ${extras.next.artist}` : noLyrics ? "No synced lyrics for this song" : "";
+  setText($("upnext"), lyricShown ? lyricNow : extras.next ? `Up next: ${extras.next.title} · ${extras.next.artist}` : noLyrics ? "No synced lyrics for this song" : "");
   $("upnext").classList.toggle("lyric", lyricShown);
   $("upnext").classList.toggle("none", noLyrics);
 
@@ -560,12 +564,12 @@ function render() {
   }
   // nothing else to say: the weather
   if (!side && wx) side = wx.error ? "" : `${wx.icon} ${wx.temp}°${wx.unit}`;
-  $("side").textContent = side;
+  setText($("side"), side);
   $("side").title = joinable ? `Join ${event.title}` : wx && !wx.error ? `${wx.label}, ${wx.temp}°${wx.unit} in ${wx.place}` : wx?.error || "";
   $("side").classList.toggle("soon", soon);
   $("side").classList.toggle("join", !!joinable);
   sideLink = joinable;
-  $("pillChip").textContent = chip;
+  setText($("pillChip"), chip);
   // focus round: a thin bar along the bottom of the pill fills up as the round goes
   notch.classList.toggle("focusing", focusing(now));
   if (focusing(now) && timerTotal) notch.style.setProperty("--focus-p", `${Math.min(100, 100 * (1 - (timerEnd - now) / timerTotal)).toFixed(2)}%`);
@@ -574,7 +578,7 @@ function render() {
 
   const s = shown();
   if (s) {
-    $("cAgo").textContent = ago(now - s.time);
+    setText($("cAgo"), ago(now - s.time));
     notch.classList.toggle("live", now - s.time < 60000);
   }
 
@@ -700,9 +704,9 @@ new MutationObserver(() => { if (!notch.classList.contains("open")) $("albumv").
 function renderAlbum() {
   if ($("albumv").hidden || !track) return;
   $("albumv").querySelectorAll("img").forEach(i => { if (i.src !== track.art) i.src = track.art; });
-  $("aTitle").textContent = track.title || "";
-  $("aArtist").textContent = track.artist || "";
-  $("aLyric").textContent = lyricLines ? lyricNow : lyricLines === false ? "No synced lyrics" : "";
+  setText($("aTitle"), track.title || "");
+  setText($("aArtist"), track.artist || "");
+  setText($("aLyric"), lyricLines ? lyricNow : lyricLines === false ? "No synced lyrics" : "");
   // Spotify's queue, when the account is connected
   const q = extras.queue || [];
   $("aQueue").hidden = !q.length;
@@ -1156,7 +1160,12 @@ function drawAi() {
 window.bridge.onClaude(() => { if (openPanel === "aiPanel") drawAi(); });
 
 // a custom pet's sprite sheet steps through its frames; the cat animates with CSS instead
-setInterval(() => { if (theme.petPack && theme.pet !== false) window.Pet.tick([$("pillPet"), $("fullPet")], Date.now()); }, 125);
+// only the pet on screen is animated: the pill's while closed, the walker in the open view
+setInterval(() => {
+  if (!theme.petPack || theme.pet === false || document.hidden) return;
+  const open = notch.classList.contains("open");
+  window.Pet.tick([open ? (notch.classList.contains("dash") ? null : $("fullPet")) : $("pillPet")].filter(Boolean), Date.now());
+}, 125);
 
 // ---- the window's shape follows the notch (shape.js in main): only the notch takes the mouse, so a file
 // dragged onto the pill lands without hovering first. Sent on every size change, also mid-animation ----
