@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld("bridge", {
   devDecode: () => ipcRenderer.invoke("devDecode"),
   snippetFromClipboard: () => ipcRenderer.invoke("snippetFromClipboard"),
   onGithub: on("github"),
+  onGhLive: on("ghLive"),
   onOpenPanel: on("openPanel"),
   timerStart: min => ipcRenderer.send("timerStart", min),
   stopwatchToggle: () => ipcRenderer.send("stopwatchToggle"),

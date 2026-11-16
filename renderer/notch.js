@@ -341,13 +341,30 @@ function renderBuild(now) {
   const el = $("pillBuild");
   const age = build ? now - build.at : Infinity;
   const on = !!build && age < (build.state === "running" ? BUILD_STALE_MS : BUILD_SHOW_MS);
-  el.hidden = !on;
-  if (!on) return false;
-  el.dataset.state = build.state;
-  el.querySelector("b").textContent = build.label;
-  el.title = `${build.label}${build.project ? ` in ${build.project}` : ""}`;
+  // nothing from the agent: a GitHub run, PR check or deploy that's still going takes the spot
+  const b = on ? build : ghLive[0] && { state: "running", label: ghLive[0].label, project: ghLive[0].repo };
+  el.hidden = !b;
+  if (!b) return false;
+  el.dataset.state = b.state;
+  setText(el.querySelector("b"), b.label);
+  el.title = `${b.label}${b.project ? ` in ${b.project}` : ""}`;
   return true;
 }
+
+// ---- developer live activities: GitHub Actions runs, PR checks, deployments (#219) ----
+let ghLive = [];
+const GH_ICON = { run: "▶", pr: "⇄", deploy: "⇪" };
+const GH_WORD = { pass: "passed", fail: "failed", cancel: "cancelled", skip: "skipped" };
+window.bridge.onGhLive(({ live, finished }) => {
+  ghLive = live;
+  if (!dndOn && !focusing()) for (const a of finished.filter(x => x.state !== "skip").slice(0, 3)) {
+    const ok = a.state === "pass";
+    toast({ app: "GitHub", badge: GH_ICON[a.kind] || "⌥", color: ok ? "#1f883d" : a.state === "fail" ? "#cf222e" : "#57606a",
+      title: a.kind === "pr" ? a.label : `${a.label} ${GH_WORD[a.state]}`, body: `${a.detail ? a.detail + " · " : ""}${a.repo}`, open: a.url, ms: 7000 });
+    if (ok) doneAt = Date.now(); else if (a.state === "fail") lastToastAt = Date.now();
+  }
+  render();
+});
 
 // ---- what an agent is doing right now, in the closed pill ----
 // working: its latest action while it's fresh; waiting: "Needs you", and the notch peeks again

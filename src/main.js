@@ -56,6 +56,7 @@ app.on("second-instance", () => (welcomePending ? openWelcome() : openSettings()
 const { checkConfig, clock } = require("./config-check");
 const devTools = require("./dev-tools");
 const githubNotify = require("./github-notify");
+const ghActivity = require("./gh-activity");
 const configPath = () => path.join(app.getPath("userData"), "config.json");
 const DEFAULTS = { spotifyClientId: "", calendarIcsUrl: "", displayId: null, notifications: true, hideInFullscreen: true, lyrics: true, permissionWaitSeconds: 8, dnd: false, dndFrom: "", dndTo: "", dndSkipUntil: 0, clipboardHistory: true, volumeHud: true, focusDnd: true, universalSearch: true, weatherCity: "", weatherUnit: "C", downloadsFolder: "", size: "normal", accent: "album", idleHide: false, hideWindowsBanners: true, powerAnim: true, powerAnimStyle: "cinematic", pet: true, userName: "", customPet: "", screenshotShelf: true, agentUpdates: true };
 let config = { ...DEFAULTS };
@@ -1103,6 +1104,8 @@ app.whenReady().then(() => {
   startAgentUpdates();
   // GitHub notifications through the gh CLI; quiet when gh isn't installed or signed in
   if (config.githubNotify !== false) githubNotify.start(list => send("github", list));
+  // Actions runs, PR checks and deployments in the repos the agents work in (#219)
+  if (config.githubLive !== false) ghActivity.start(() => [...knownCwds], u => send("ghLive", u));
   startDevices();
   applyServices(); // remember what the services started with
   setInterval(readClaude, 2000);
