@@ -171,6 +171,28 @@ const APP_COLORS = { WhatsApp: "#25d366", Discord: "#5865f2", Telegram: "#2aabee
 // volume / brightness HUD: the notch takes over from the Windows overlay
 const HUD_SPEAKER = '<path class="fill" d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/>';
 const hudSvg = body => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
+// line icons for Islet's own notifications (Lucide shapes), instead of letters and emoji
+const NOTE_ICONS = {
+  github: hudSvg('<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>'),
+  run: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/>'),
+  pr: hudSvg('<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7M6 9v12"/>'),
+  deploy: hudSvg('<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>'),
+  batteryLow: hudSvg('<rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M6 11v2"/>'),
+  timer: hudSvg('<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>'),
+  calendar: hudSvg('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  camera: hudSvg('<path d="m16 13 5.22 3.48a.5.5 0 0 0 .78-.42V7.87a.5.5 0 0 0-.75-.43L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>'),
+  moon: hudSvg('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'),
+  update: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/>'),
+  download: hudSvg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>'),
+  image: hudSvg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/>'),
+  bluetooth: hudSvg('<path d="m7 7 10 10-5 5V2l5 5L7 17"/>'),
+  headphones: hudSvg('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>'),
+  mouse: hudSvg('<rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 6v4"/>'),
+  alert: hudSvg('<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>'),
+  passed: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
+  failed: hudSvg('<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'),
+  keyboard: hudSvg('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>'),
+};
 const HUD_ICONS = {
   low: hudSvg(HUD_SPEAKER + '<path d="M15.2 9.6a3.4 3.4 0 0 1 0 4.8"/>'),
   high: hudSvg(HUD_SPEAKER + '<path d="M15.2 9.6a3.4 3.4 0 0 1 0 4.8M17.8 7a7 7 0 0 1 0 10"/>'),
@@ -247,7 +269,7 @@ navigator.getBattery?.().then(b => {
   let warned = false;
   const pct = () => `${Math.round(b.level * 100)}%`;
   b.addEventListener("levelchange", () => {
-    if (!b.charging && b.level <= 0.2 && !warned) { warned = true; toast({ app: "Battery", badge: "!", color: "#d1453b", title: "Battery low", body: `${pct()} left. Plug in soon.` }); }
+    if (!b.charging && b.level <= 0.2 && !warned) { warned = true; toast({ app: "Battery", svg: NOTE_ICONS.batteryLow, color: "#d1453b", title: "Battery low", body: `${pct()} left. Plug in soon.` }); }
     if (b.level > 0.25) warned = false;
   });
 });
@@ -418,13 +440,13 @@ window.bridge.obsRec().then(r => { if (r.connected && obsRec === undefined) obsR
 
 // ---- developer live activities: GitHub Actions runs, PR checks, deployments (#219) ----
 let ghLive = [];
-const GH_ICON = { run: "▶", pr: "⇄", deploy: "⇪" };
+const GH_ICON = { run: NOTE_ICONS.run, pr: NOTE_ICONS.pr, deploy: NOTE_ICONS.deploy };
 const GH_WORD = { pass: "passed", fail: "failed", cancel: "cancelled", skip: "skipped" };
 window.bridge.onGhLive(({ live, finished }) => {
   ghLive = live;
   if (!dndOn && !focusing()) for (const a of finished.filter(x => x.state !== "skip").slice(0, 3)) {
     const ok = a.state === "pass";
-    toast({ app: "GitHub", badge: GH_ICON[a.kind] || "⌥", color: ok ? "#1f883d" : a.state === "fail" ? "#cf222e" : "#57606a",
+    toast({ app: "GitHub", svg: a.kind === "run" && ok ? NOTE_ICONS.passed : a.kind === "run" && a.state === "fail" ? NOTE_ICONS.failed : GH_ICON[a.kind] || NOTE_ICONS.github, color: ok ? "#1f883d" : a.state === "fail" ? "#cf222e" : "#57606a",
       title: a.kind === "pr" ? a.label : `${a.label} ${GH_WORD[a.state]}`, body: `${a.detail ? a.detail + " · " : ""}${a.repo}`, open: a.url, ms: 7000 });
     if (ok) doneAt = Date.now(); else if (a.state === "fail") lastToastAt = Date.now();
   }
@@ -619,7 +641,7 @@ function render() {
   } else if (timerEnd && timerEnd <= now) {
     timerEnd = 0;
     // Pomodoro phases say it themselves (focusEvent), with the break tip
-    if (!/^(Focus \d|Break|Long break)/.test(timerLabel)) toast({ app: "Timer", badge: "⏱", color: "#5e5ce6", title: "Time's up", body: `${timerLabel} has finished.` });
+    if (!/^(Focus \d|Break|Long break)/.test(timerLabel)) toast({ app: "Timer", svg: NOTE_ICONS.timer, color: "#5e5ce6", title: "Time's up", body: `${timerLabel} has finished.` });
   }
   // a running stopwatch counts up when no timer is on
   if (!side && stopwatchStart) {
@@ -642,7 +664,7 @@ function render() {
       if (event.link && mins <= 10) { joinable = event.link; side = `Join ${when}`; } // the Join link appears 10 minutes ahead
       soon = mins <= 15;
       if (soon) chip = `${event.title} ${when}`;
-      if (mins <= 5 && eventPeeked !== event.start) { eventPeeked = event.start; toast({ app: "Calendar", badge: "📅", color: "#e8453c", title: event.title, body: mins <= 0 ? "Starting now" : `Starts in ${mins} min`, link: event.link && mins <= 10 ? event.link : undefined }); }
+      if (mins <= 5 && eventPeeked !== event.start) { eventPeeked = event.start; toast({ app: "Calendar", svg: NOTE_ICONS.calendar, color: "#e8453c", title: event.title, body: mins <= 0 ? "Starting now" : `Starts in ${mins} min`, link: event.link && mins <= 10 ? event.link : undefined }); }
     }
   }
   // nothing else to say: the weather
@@ -778,9 +800,9 @@ window.bridge.onSystem(d => {
 // clicking the dots says which apps use the mic, camera or screen
 $("priv").onclick = () => {
   if (!privUse.length) return;
-  toast({ app: "Privacy", badge: "●", color: privUse.some(([c]) => c === "cam") ? "#30d158" : "#ff9f0a", title: privUse.map(([, label]) => label).join(", ") + " in use", body: privUse.map(([, label, apps]) => `${label}: ${apps.join(", ")}`).join(" · ") });
+  toast({ app: "Privacy", svg: privUse.some(([c]) => c === "cam") ? NOTE_ICONS.camera : HUD_ICONS.mic, color: privUse.some(([c]) => c === "cam") ? "#30d158" : "#ff9f0a", title: privUse.map(([, label]) => label).join(", ") + " in use", body: privUse.map(([, label, apps]) => `${label}: ${apps.join(", ")}`).join(" · ") });
 };
-window.bridge.onDndSummary(m => toast({ app: "Do Not Disturb", badge: "☾", color: "#5e5ce6", title: "While you were away", body: m.text }));
+window.bridge.onDndSummary(m => toast({ app: "Do Not Disturb", svg: NOTE_ICONS.moon, color: "#5e5ce6", title: "While you were away", body: m.text }));
 
 // ---- album view ----
 $("artBtn").addEventListener("click", () => { if (track?.art) { $("albumv").hidden = false; renderAlbum(); } });
@@ -1044,8 +1066,8 @@ window.bridge.onShelf(files => {
   }));
 });
 window.bridge.onShelfAction(d => toast(d.ok
-  ? { id: "shelf-" + d.name, app: "Shelf", badge: "▣", color: "#30d158", title: d.name, body: `${d.label} done. It's on the shelf, next to the original.` }
-  : { id: "shelf-err", app: "Shelf", badge: "!", color: "#ff453a", title: d.label, body: `Couldn't do that: ${d.error}` }));
+  ? { id: "shelf-" + d.name, app: "Shelf", svg: NOTE_ICONS.image, color: "#30d158", title: d.name, body: `${d.label} done. It's on the shelf, next to the original.` }
+  : { id: "shelf-err", app: "Shelf", svg: NOTE_ICONS.alert, color: "#ff453a", title: d.label, body: `Couldn't do that: ${d.error}` }));
 $("shelfAddBtn").onclick = () => window.bridge.shelfPick();
 // dropping files anywhere on the notch opens it on the shelf and adds them
 notch.addEventListener("dragover", e => {
@@ -1065,9 +1087,9 @@ notch.addEventListener("drop", e => {
 // ---- weather + downloads ----
 window.bridge.onWeather(w => { wx = w; render(); });
 window.bridge.onDownloads(list => { dls = list; render(); });
-window.bridge.onUpdateReady(v => toast({ update: true, app: "Islet", badge: "↑", color: "#30d158", title: `Islet ${v} is ready`, body: "Click to restart and update, or it installs when you quit.", ms: 10000 }));
-window.bridge.onDownloadDone(d => toast({ id: d.id, app: "Downloads", badge: "↓", color: "#0a84ff", title: d.name, body: "Downloaded. Click to show in folder." }));
-window.bridge.onScreenshot(d => toast({ id: d.id, app: "Screenshot", badge: "▣", color: "#30d158", title: d.name, body: "On the shelf. Drag it out, or click to show in folder." }));
+window.bridge.onUpdateReady(v => toast({ update: true, app: "Islet", svg: NOTE_ICONS.update, color: "#30d158", title: `Islet ${v} is ready`, body: "Click to restart and update, or it installs when you quit.", ms: 10000 }));
+window.bridge.onDownloadDone(d => toast({ id: d.id, app: "Downloads", svg: NOTE_ICONS.download, color: "#0a84ff", title: d.name, body: "Downloaded. Click to show in folder." }));
+window.bridge.onScreenshot(d => toast({ id: d.id, app: "Screenshot", svg: NOTE_ICONS.image, color: "#30d158", title: d.name, body: "On the shelf. Drag it out, or click to show in folder." }));
 
 // ---- look ----
 window.bridge.onTheme(t => {
@@ -1244,15 +1266,15 @@ $("colorPick").onclick = async () => {
 // ---- system: CPU, memory, disk, battery, Bluetooth batteries, uptime ----
 let btDevices = [];
 window.bridge.onDevices(list => { btDevices = list || []; });
-window.bridge.onDeviceLow(d => toast({ app: "Bluetooth", badge: "!", color: "#d1453b", title: `${d.name} battery low`, body: `${d.battery}% left. Charge it soon.` }));
+window.bridge.onDeviceLow(d => toast({ app: "Bluetooth", svg: NOTE_ICONS.batteryLow, color: "#d1453b", title: `${d.name} battery low`, body: `${d.battery}% left. Charge it soon.` }));
 // Bluetooth device island: a pop-up when a device connects or disconnects
-const btIcon = n => /bud|pod|ear|head|phone|airdopes|buzz|sound|audio|speaker|jbl|sony|wh-|wf-/i.test(n) ? "🎧" : /mouse/i.test(n) ? "🖱" : /keyboard|keys/i.test(n) ? "⌨" : "ᛒ";
+const btIcon = n => /bud|pod|ear|head|phone|airdopes|buzz|sound|audio|speaker|jbl|sony|wh-|wf-/i.test(n) ? NOTE_ICONS.headphones : /mouse/i.test(n) ? NOTE_ICONS.mouse : /keyboard|keys/i.test(n) ? NOTE_ICONS.keyboard : NOTE_ICONS.bluetooth;
 const btBody = b => b == null ? "Connected" : `Connected · ${b}% battery`;
 window.bridge.onBtConnect(e => toast(e.type === "connected"
-  ? { id: "bt-" + e.name, app: "Bluetooth", badge: btIcon(e.name), color: "#0a84ff", title: e.name, body: btBody(e.battery), ms: 4000 }
-  : { id: "bt-" + e.name, app: "Bluetooth", badge: btIcon(e.name), color: "#636366", title: e.name, body: "Disconnected", ms: 3000 }));
-window.bridge.onBtBattery(d => toast({ id: "bt-" + d.name, app: "Bluetooth", badge: btIcon(d.name), color: "#0a84ff", title: d.name, body: btBody(d.battery), ms: 4000 }));
-window.bridge.onAgentUpdate(u => toast({ app: u.name, badge: "↑", color: "#6b5bd6", title: `${u.name} ${u.version} is out`, body: `Update with: ${u.update}`, ms: 7000 }));
+  ? { id: "bt-" + e.name, app: "Bluetooth", svg: btIcon(e.name), color: "#0a84ff", title: e.name, body: btBody(e.battery), ms: 4000 }
+  : { id: "bt-" + e.name, app: "Bluetooth", svg: btIcon(e.name), color: "#636366", title: e.name, body: "Disconnected", ms: 3000 }));
+window.bridge.onBtBattery(d => toast({ id: "bt-" + d.name, app: "Bluetooth", svg: btIcon(d.name), color: "#0a84ff", title: d.name, body: btBody(d.battery), ms: 4000 }));
+window.bridge.onAgentUpdate(u => toast({ app: u.name, svg: NOTE_ICONS.update, color: "#6b5bd6", title: `${u.name} ${u.version} is out`, body: `Update with: ${u.update}`, ms: 7000 }));
 const gb = n => `${(n / 1024 ** 3).toFixed(1)} GB`;
 async function drawSys() {
   const s = await window.bridge.sysStats();
@@ -1329,7 +1351,7 @@ for (const b of document.querySelectorAll(".dock button")) {
 window.bridge.onOpenPanel(id => { if (PANELS.includes(id)) { setOpen(true); showPanel(id, false); } });
 window.bridge.onGithub(list => {
   if (dndOn || focusing()) return; // Do Not Disturb and focus rounds keep GitHub quiet
-  for (const n of list.slice(0, 3)) toast({ app: "GitHub", badge: "⌥", color: "#24292f", title: n.title, body: `${n.reason} · ${n.repo}`, open: n.url, ms: 7000 });
+  for (const n of list.slice(0, 3)) toast({ app: "GitHub", svg: NOTE_ICONS.github, color: "#24292f", title: n.title, body: `${n.reason} · ${n.repo}`, open: n.url, ms: 7000 });
 });
 
 // ---- AI coding: every Claude Code and Codex session with its last actions ----
