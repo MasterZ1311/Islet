@@ -15,7 +15,19 @@ let fgApp = "", privUse = [];
 let likedAt = 0, doneAt = 0, plugAt = 0, openedAt = 0, dndOn = false;
 
 // ---- open / close; window is click-through except over the notch ----
-function setOpen(o) { if (o && !notch.classList.contains("open")) openedAt = Date.now(); notch.classList.toggle("open", o); notch.setAttribute("aria-expanded", o); }
+function setOpen(o) {
+  if (o && !notch.classList.contains("open")) { openedAt = Date.now(); prefetchQuick(); }
+  notch.classList.toggle("open", o); notch.setAttribute("aria-expanded", o);
+}
+// Home's tiles and sliders come from PowerShell (~0.7 s): start reading as the notch opens, so the
+// values are there by the time Home shows, and wake the mixer's helper so "Apps" opens at once
+let quickAt = 0;
+function prefetchQuick() {
+  if (Date.now() - quickAt < 5000) return;
+  quickAt = Date.now();
+  refreshQuick();
+  window.bridge.mixerGet();
+}
 // the cat talks in the closed pill: a hello when Islet starts (by time of day on the first one each day),
 // a line when its mood changes, and now and then while idle; the pill widens for the text, then shrinks back
 const SAY_MS = 6000, CHAT_EVERY = 10 * 60000;
@@ -748,7 +760,7 @@ function drawHello() {
 
 // ---- tools: one panel at a time, in the tall view with the dock under it ----
 const PANELS = [...document.querySelectorAll(".panel")].map(p => p.id);
-const OPENED = { dashPanel: () => { refreshQuick(); drawHello(); closeMixer(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: drawTimer, weatherPanel: drawWeather, unitsPanel: drawUnits, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
+const OPENED = { dashPanel: () => { prefetchQuick(); drawHello(); closeMixer(); }, phonePanel: startPhone, linksPanel: loadLinks, clockPanel: drawClocks, timerPanel: drawTimer, weatherPanel: drawWeather, unitsPanel: drawUnits, colorPanel: drawColors, sysPanel: drawSys, aiPanel: drawAi, devPanel: drawDev };
 let openPanel = null;
 // toggle: a second click on the button that opened it closes it (the dock only switches)
 function showPanel(id, toggle = true) {

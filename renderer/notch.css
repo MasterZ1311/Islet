@@ -49,6 +49,7 @@ body {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 10;
   box-shadow: inset 0 0 0 2px #7dffa0, inset 0 0 8px 2px #63d47a, inset 0 -6px 22px 4px #63d47acc; opacity: 0; transition: opacity .4s;
 }
+.notch.dash::after, .notch.dash::before { z-index: 30; } /* the tall view's panel is z-index 20: keep the glow over it */
 .notch.charging::after { opacity: 1; animation: edgeglow 2.4s ease-in-out 3; } /* then a steady glow: no redraws while plugged in */
 @keyframes edgeglow { 50% { opacity: .6; } }
 /* pill is only 30px tall: glow hugs the edges evenly instead of filling from the bottom */
@@ -385,7 +386,7 @@ button.saveErr { cursor: pointer; }
 .qslide input { flex: 1; accent-color: #bf8cff; height: 16px; }
 .qslide output { width: 28px; text-align: right; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 /* per-app volume: opens under the volume slider */
-.qmixbtn { display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 6px 0 4px; border-radius: 7px; color: var(--muted); font: inherit; font-size: 10.5px; }
+.qslide .qmixbtn { width: auto; flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 6px 0 4px; border-radius: 7px; color: var(--muted); font: inherit; font-size: 10.5px; }
 .qmixbtn:hover { background: var(--secondary); color: var(--text); }
 .qslide .qmixbtn svg.i { width: 13px; height: 13px; stroke: currentColor; transition: rotate .2s var(--ease-out, ease); }
 .qslide .qmixbtn[aria-expanded="true"] svg.i { rotate: 180deg; }
