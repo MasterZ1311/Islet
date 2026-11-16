@@ -451,6 +451,14 @@ const notifTargets = new Map();
 let notifCount = 0;
 // a meeting link comes from calendar text, so it is checked again here before anything is opened
 ipcMain.on("joinMeeting", (_, url) => { if (typeof url === "string" && calendar.isMeetingUrl(url)) shell.openExternal(url); });
+// Dismiss: also remove it from the Windows notification centre
+ipcMain.on("dismissNotification", (_, id) => {
+  const w = notifTargets.get(id)?.win;
+  if (!w?.tag || !w.aumid) return;
+  execFile("powershell.exe", [...PS, path.join(__dirname, "notif-dismiss.ps1")],
+    { windowsHide: true, timeout: 15000, env: { ...process.env, ISLET_TAG: w.tag, ISLET_GROUP: w.group || "", ISLET_AUMID: w.aumid } },
+    (err, out) => { if (err || String(out).trim() !== "ok") console.warn("dismiss notification", err?.message || String(out).trim()); });
+});
 ipcMain.on("openNotification", (_, id) => {
   const t = notifTargets.get(id);
   if (!t) return;
@@ -1163,17 +1171,17 @@ app.whenReady().then(() => {
   setInterval(() => pollClipboard().catch(e => console.warn("clipboard", e.message)), 1000);
   loadShelf().catch(e => console.warn("shelf", e.message));
   applyBanners();
-  notifications.watch(async ({ aumid, xml, ...n }) => {
+  notifications.watch(async ({ aumid, xml, tag, group, ...n }) => {
     if (aumid && bannersSaved && !(aumid in bannersSaved)) applyBanners([aumid]); // an app seen for the first time
     if (!config.notifications || welcomePending) return;
     if (dndActive()) return missed.add(n.app);
     // what a click opens: the toast's own link when it has one, else the app
-    const launch = xml.match(/<toast[^>]*\blaunch="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
-    const protocol = /<toast[^>]*activationType="protocol"/.test(xml) && launch && /^[a-z][\w+.-]*:/i.test(launch);
+    const { link, reply } = notifications.actionsOf(xml);
     const id = ++notifCount;
-    notifTargets.set(id, protocol ? { url: launch } : { aumid });
+    notifTargets.set(id, { ...(link ? { url: link } : { aumid }), win: { aumid, tag, group } });
     if (notifTargets.size > 50) notifTargets.delete(notifTargets.keys().next().value);
-    send("notification", { ...n, id, icon: await icons.forNotification(aumid, xml) });
+    // the pop-up's buttons (#225): Open, Snooze, Dismiss (needs the tag to find it again), Reply in the app
+    send("notification", { ...n, id, icon: await icons.forNotification(aumid, xml), actions: { dismiss: !!(tag && aumid), reply } });
   });
   // reload settings when the file is edited by hand
   fs.watchFile(configPath(), { interval: 2000 }, () => {

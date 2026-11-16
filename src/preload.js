@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld("bridge", {
   snippetFromClipboard: () => ipcRenderer.invoke("snippetFromClipboard"),
   onGithub: on("github"),
   onGhLive: on("ghLive"),
+  dismissNotification: id => ipcRenderer.send("dismissNotification", id),
   onObsRec: on("obsRec"),
   obsRec: () => ipcRenderer.invoke("obsRec"),
   recControl: (action, proc) => ipcRenderer.invoke("recControl", action, proc),

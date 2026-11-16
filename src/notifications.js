@@ -61,7 +61,7 @@ function watch(onNew) {
         return;
       }
       const rows = db.prepare(
-        "select n.Id id, h.PrimaryId app, cast(n.Payload as text) xml from Notification n join NotificationHandler h on h.RecordId = n.HandlerId where n.Id > ? and n.Type = 'toast' order by n.Id"
+        "select n.Id id, h.PrimaryId app, cast(n.Payload as text) xml, n.Tag tag, n.\"Group\" grp from Notification n join NotificationHandler h on h.RecordId = n.HandlerId where n.Id > ? and n.Type = 'toast' order by n.Id"
       ).all(lastId);
       for (const r of rows) {
         lastId = Math.max(lastId, r.id);
@@ -69,7 +69,7 @@ function watch(onNew) {
         if (!t.length) continue;
         const app = appName(r.app || "");
         if (app === "Spotify") continue; // already shown as music
-        onNew({ app, title: t[0], body: t.slice(1).join(" · "), aumid: r.app || "", xml: r.xml || "" });
+        onNew({ app, title: t[0], body: t.slice(1).join(" · "), aumid: r.app || "", xml: r.xml || "", tag: typeof r.tag === "string" ? r.tag : "", group: typeof r.grp === "string" ? r.grp : "" });
       }
     } catch (e) {
       try { db?.close(); } catch {}
@@ -80,7 +80,18 @@ function watch(onNew) {
   setInterval(poll, 2000);
 }
 
-module.exports = { watch, texts };
+// what Islet can offer for a toast (#225): its own link (opens the exact item), and whether the
+// app asks for a reply. A reply goes back to the app through its own activation, which only the
+// app can receive, so Islet can only send the person to the app for it.
+function actionsOf(xml) {
+  const head = String(xml).match(/<toast\b[^>]*>/)?.[0] || "";
+  const launch = head.match(/\blaunch="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&");
+  const link = /activationType="protocol"/.test(head) && launch && /^[a-z][\w+.-]*:/i.test(launch) ? launch : null;
+  const reply = /<input\b[^>]*\btype="text"/.test(xml);
+  return { link, reply };
+}
+
+module.exports = { watch, texts, actionsOf };
 
 // Windows' own banners (bottom right). Islet shows the pop-up instead, so it can
 // turn each app's banner off; notifications still reach the notification centre.

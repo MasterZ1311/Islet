@@ -122,6 +122,12 @@ function nextToast() {
   $("tTitle").textContent = t.title || "";
   $("tBody").textContent = t.body || "";
   $("tBar").hidden = t.bar == null; // volume / brightness HUD level
+  // Windows notifications get buttons (#225)
+  $("tActs").hidden = !t.actions;
+  if (t.actions) {
+    $("tActs").querySelector('[data-act="reply"]').hidden = !t.actions.reply;
+    $("tActs").querySelector('[data-act="dismiss"]').hidden = !t.actions.dismiss;
+  }
   if (t.bar != null) $("tFill").style.width = Math.round(t.bar * 100) + "%";
   // grow to fit the whole message (window is 190 tall)
   notch.style.setProperty("--toast-h", Math.min(180, Math.max(62, notch.querySelector(".tmeta").scrollHeight + 20)) + "px");
@@ -146,6 +152,19 @@ $("notch").querySelector(".toastv").addEventListener("click", () => {
   else if (current?.link) window.bridge.joinMeeting(current.link);
   else if (current?.open) window.bridge.openLink(current.open);
   else if (current?.id) window.bridge.openNotification(current.id);
+  endToast();
+});
+// notification buttons: Open / Reply in app open it (the reply happens in the app), Snooze brings
+// the pop-up back in 10 minutes, Dismiss also clears it from the Windows notification centre
+const SNOOZE_MS = 10 * 60000;
+$("tActs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"), t = current;
+  if (!b || !t) return;
+  e.stopPropagation();
+  const act = b.dataset.act;
+  if (act === "open" || act === "reply") window.bridge.openNotification(t.id);
+  else if (act === "snooze") setTimeout(() => toast({ ...t, app: `${t.app.replace(/ · snoozed$/, "")} · snoozed` }), SNOOZE_MS);
+  else if (act === "dismiss") window.bridge.dismissNotification(t.id);
   endToast();
 });
 const APP_COLORS = { WhatsApp: "#25d366", Discord: "#5865f2", Telegram: "#2aabee", Teams: "#5b5fc7", Outlook: "#0f6cbd", Slack: "#611f69", Chrome: "#4285f4", Edge: "#0c88d8", "Phone Link": "#0067c0" };
