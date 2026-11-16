@@ -714,3 +714,22 @@ button.link:hover { background: var(--secondary); }
 /* dock: hovering a tool for a moment shows its name above it */
 .dock button.tip span { width: auto; height: auto; overflow: visible; clip-path: none; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 2px 8px; border-radius: 6px; background: var(--secondary); box-shadow: 0 0 0 1px var(--border), 0 4px 12px #0008; color: var(--text); font-size: 10.5px; font-weight: 600; pointer-events: none; z-index: 40; animation: tipIn .22s var(--spring); }
 @keyframes tipIn { from { opacity: 0; transform: translate(-50%, 4px) scale(.94); } }
+
+/* ---- Vengeance UI (vengenceui.com animated-button, CSS port): a light band sweeps the 1px border on
+   hover and the press springs. Hover only: nothing loops, so an idle notch stays still (b54c80e). ---- */
+.qtiles button, .qmixbtn, .qmixer li button { --shine: rgb(255 255 255/.55); position: relative; isolation: isolate;
+  transition: background .15s, color .15s, transform .35s cubic-bezier(.34,1.56,.64,1); }
+.qtiles button::before, .qmixbtn::before, .qmixer li button::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(-75deg, transparent 30%, var(--shine) 50%, transparent 70%) 100% 0/200% 100%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0); opacity: 0; }
+.qtiles button:not(:disabled):hover { transform: translateY(-1px) scale(1.01); }
+.qtiles button:not(:disabled):hover::before, .qmixbtn:hover::before, .qmixer li button:hover::before { animation: vgBorder 1s linear; }
+.qtiles button:not(:disabled):active, .qmixbtn:active, .qmixer li button:active { transform: scale(.95); transition-duration: .12s; }
+.qtiles button[aria-pressed=true] { --shine: rgb(0 0 0/.45); } /* white tile: a dark band */
+.qtiles button:focus-visible, .qmixbtn:focus-visible, .qmixer li button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@keyframes vgBorder { 0% { background-position: 100% 0; opacity: 0 } 50% { opacity: 1 } 100% { background-position: 0 0; opacity: 0 } }
+@media (prefers-reduced-motion: reduce) {
+  .qtiles button::before, .qmixbtn::before, .qmixer li button::before { animation: none !important; }
+  .qtiles button:hover, .qtiles button:active, .qmixbtn:active, .qmixer li button:active { transform: none; }
+}
