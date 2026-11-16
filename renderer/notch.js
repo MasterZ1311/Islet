@@ -696,8 +696,10 @@ function updatePet(now, busy) {
 // closed pill: as wide as what it shows, no empty black on either side
 let fittedPillWidth = 0;
 function fitPill() {
-  const items = [...document.querySelector(".pill").children].filter(el => el.offsetWidth && getComputedStyle(el).visibility !== "hidden");
-  const w = items.reduce((n, el) => n + el.offsetWidth, 0) + 8 * (items.length - 1) + 22; // gaps + side padding
+  const pill = document.querySelector(".pill"), ps = getComputedStyle(pill);
+  const items = [...pill.children].filter(el => el.offsetWidth && getComputedStyle(el).visibility !== "hidden");
+  const margins = el => { const c = getComputedStyle(el); return parseFloat(c.marginLeft) + parseFloat(c.marginRight); };
+  const w = items.reduce((n, el) => n + el.offsetWidth + margins(el), 0) + 8 * (items.length - 1) + parseFloat(ps.paddingLeft) + parseFloat(ps.paddingRight); // items, gaps, side padding
   const next = Math.max(90, Math.ceil(w));
   if (next !== fittedPillWidth) {
     fittedPillWidth = next;
