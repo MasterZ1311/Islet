@@ -597,6 +597,11 @@ button.saveErr { cursor: pointer; }
 .ai li[data-status=done] i { background: #30d158; }
 .ai b { font-size: 12px; }
 .ai small { color: var(--muted); font-size: 10.5px; margin-left: auto; }
+.ai .ctx { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.ai .ctx i { display: block; height: 3px; border-radius: 2px; background: #30d158; flex: none; max-width: 70%; }
+.ai .ctx[data-level=mid] i { background: var(--warn); }
+.ai .ctx[data-level=high] i { background: #ff453a; }
+.ai .ctx small { margin-left: 0; }
 .ai p { color: #a1a1aa; font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* the tall view: hide the normal view under the dock, and keep small round remove buttons small */

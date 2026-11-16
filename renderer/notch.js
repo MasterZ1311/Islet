@@ -1335,6 +1335,14 @@ function drawAi() {
     head.title = s.cwd ? "Open project folder" : "";
     head.onclick = () => s.cwd && window.bridge.openProject(s.cwd);
     li.append(head, Object.assign(document.createElement("p"), { textContent: s.actions.map(a => a.action).join(" · ") || "No activity yet" }));
+    if (s.context) {
+      const c = s.context, m = document.createElement("div");
+      m.className = "ctx"; m.dataset.level = c.pct >= 85 ? "high" : c.pct >= 65 ? "mid" : "ok";
+      m.title = `Context window: ${c.tokens.toLocaleString()} of ${c.limit.toLocaleString()} tokens`;
+      m.append(Object.assign(document.createElement("i"), {}), Object.assign(document.createElement("small"), { textContent: `Context ${c.pct}%` }));
+      m.firstChild.style.width = c.pct + "%";
+      li.append(m);
+    }
     return li;
   }));
 }
