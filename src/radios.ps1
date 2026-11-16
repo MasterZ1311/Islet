@@ -22,10 +22,10 @@ $StateType = [Windows.Devices.Radios.RadioState, Windows.System.Devices, Content
 
 [void](Await ($RadioType::RequestAccessAsync()) $AccessType)
 $radios = @(Await ($RadioType::GetRadiosAsync()) $ListType)
-# RadioKind: 1 = Wi-Fi, 2 = Bluetooth
+# matched by RadioKind name (WiFi, Bluetooth); the numbers are 1 and 3, not 1 and 2
 function Pick($name) {
-  $want = if ($name -eq "wifi") { 1 } elseif ($name -eq "bluetooth") { 2 } else { 0 }
-  $radios | Where-Object { [int]$_.Kind -eq $want } | Select-Object -First 1
+  $want = if ($name -eq "wifi") { "WiFi" } elseif ($name -eq "bluetooth") { "Bluetooth" } else { "" }
+  $radios | Where-Object { [string]$_.Kind -eq $want } | Select-Object -First 1
 }
 function Report {
   $o = [ordered]@{}
@@ -38,7 +38,7 @@ if ($Mode -eq "set" -and $Kind -eq "all") {
   # airplane mode: everything off; turning it off brings back Wi-Fi and Bluetooth only
   $target = (Get-Culture).TextInfo.ToTitleCase($State.ToLower())
   foreach ($r in $radios) {
-    if ($target -eq "On" -and [int]$r.Kind -notin 1, 2) { continue }
+    if ($target -eq "On" -and [string]$r.Kind -notin "WiFi", "Bluetooth") { continue }
     [void](Await ($r.SetStateAsync([Windows.Devices.Radios.RadioState]$target)) $AccessType)
   }
 } elseif ($Mode -ne "get") {
